@@ -17,8 +17,8 @@ app.use(bodyParser.json());
 
 connectToDb();
 
-// const users = require('./routes/users.js')
-// app.use('/users', users);
+const user = require('./routes/user.js')
+app.use('/user', user);
 
 app.listen(process.env.PORT, () => {
     console.log(`Servers en marche sur le port ${process.env.PORT}`)
