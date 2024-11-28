@@ -8,7 +8,7 @@ const connectToDb = async () => {
     const timeOnly = timeStamp.toLocaleTimeString(); // Format par défaut
 
     if (db) {
-        console.log(timeOnly, 'Dèja connecté à la base de données');
+        console.log(timeOnly, 'Connecté à la base de données');
         return db;
     }
 
