@@ -1,0 +1,40 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Cloner le dépôt
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Étape 2 : Installer Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' # Ou votre version Node.js
+
+      # Étape 3 : Installer les dépendances
+      - name: Install dependencies
+        run: npm install
+
+      # Étape 4 : Exécuter les tests
+      - name: Run tests
+        run: npm test
+
+      # Étape 5 : Installer Railway CLI
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      # Étape 6 : Déployer sur Railway
+      - name: Deploy to Railway
+        if: success() # N'exécuter cette étape que si les tests réussissent
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service "nom-du-service"
