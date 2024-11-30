@@ -37,4 +37,4 @@ jobs:
         if: success() # N'exécuter cette étape que si les tests réussissent
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service "nom-du-service"
+        run: railway up --service "centre_formation_back"
