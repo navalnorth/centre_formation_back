@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
       const db = await connectToDb();
       if (!db) { return res.status(500).json({ message: "Erreur de connexion à la base de données" }) }
 
-      const sql = "SELECT * FROM users";
+      const sql = "SELECT * FROM users"
       const [results] = await db.query(sql);
 
       res.status(200).json({ message: "Données récupérées avec succès !", data: results});
