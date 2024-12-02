@@ -7,17 +7,15 @@ const upload = require("../middlewares/multerConfig.js");
 
 
 
-router.get("/:id_card", async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         const db = await connectToDb();
         if (!db) { return res.status(500).json({ message: "Erreur de connexion à la base de données" }) }
 
-        const cardId = req.params.id_card;
+        const sql = "SELECT * FROM card";
+        const [results] = await db.query(sql);
 
-        const sql = "SELECT * FROM card WHERE id_card = ?";
-        const [results] = await db.query(sql,[cardId]);
-
-        res.status(200).json({ message: "Données récupérées avec succès !", data: results[0] });
+        res.status(200).json({ message: "Données récupérées avec succès !", data: results });
     } catch (err) {
         res.status(500).json({ message: "Erreur lors de la récupération des données", error: err.message });
     }

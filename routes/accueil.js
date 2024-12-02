@@ -3,9 +3,27 @@ const router = express.Router();
 const mysql = require("mysql2");
 require("dotenv").config();
 const connectToDb = require("../db.js");
-const upload = require("../middlewares/multerConfig.js"); 
 
+// const upload = require("../middlewares/multerConfig.js"); 
 
+// -----Upload
+const multer = require('multer')
+const path = require('path')
+
+let storage = multer.diskStorage({
+    destination: (req, file, callBack) => {
+        callBack(null, './uploads/')     // './uploads/' directory name where save the file
+    },
+    filename: (req, file, callBack) => {
+        callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    }
+})
+
+let upload = multer({
+    storage: storage
+});
+
+// FIN Upload--------------------
 
 router.get("/", async (req, res) => {
     try {
@@ -49,6 +67,38 @@ router.put("/modifierAccueil", upload.single("image_accueil"), async (req, res) 
     }
 });
   
+
+router.put("/modifierAccueilImage", upload.single("image_accueil"), async (req, res) => {
+    let image_accueil;
+
+    if (!req.file) {
+        image_accueil = ""
+    } else {
+        console.log(req.file.filename)
+        image_accueil = req.file.filename
+    }
+
+
+    try {
+        const db = await connectToDb();
+        if (!db) { return res.status(500).json({ message: "Erreur de connexion à la base de données" }) }
+
+        const sql = 
+        `UPDATE accueil SET 
+        image_accueil = ?`;
+        const [result] = await db.query(sql, [image_accueil]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
+        }
+
+        res.status(200).json({ message: "Accueil mis à jour avec succès !" });
+    } catch (err) {
+        res.status(500).json("Erreur lors de la mise à jour de l'accueil :", err);
+    }
+});
+  
+
 
 
 
