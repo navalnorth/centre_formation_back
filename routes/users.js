@@ -5,7 +5,7 @@ const mysql = require("mysql2");
 require("dotenv").config();
 const connectToDb = require("../db.js");
 const jwt = require("jsonwebtoken");
-const upload = require("../middlewares/multerConfig.js");
+
 
 
 

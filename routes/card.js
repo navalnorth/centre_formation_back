@@ -3,7 +3,6 @@ const router = express.Router();
 const mysql = require("mysql2");
 require("dotenv").config();
 const connectToDb = require("../db.js");
-const upload = require("../middlewares/multerConfig.js");
 
 
 
