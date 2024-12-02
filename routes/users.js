@@ -7,6 +7,24 @@ const connectToDb = require("../db.js");
 const jwt = require("jsonwebtoken");
 
 
+// -----Upload
+const multer = require('multer')
+const path = require('path')
+
+let storage = multer.diskStorage({
+    destination: (req, file, callBack) => {
+        callBack(null, './uploads/')     // './uploads/' directory name where save the file
+    },
+    filename: (req, file, callBack) => {
+        callBack(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    }
+})
+
+let upload = multer({
+    storage: storage
+});
+
+// FIN Upload--------------------
 
 
 
