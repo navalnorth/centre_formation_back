@@ -1,30 +1,33 @@
-const mysql = require("mysql2/promise");
-require("dotenv").config();
+const mysql = require('mysql2/promise');
+require('dotenv').config();
 
-let pool;
+let db = null;
 
 const connectToDb = async () => {
-  try {
-    if (!pool) {
-      pool = mysql.createPool({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        database: process.env.DB_NAME,
-        password: process.env.DB_PASSWORD,
-        port: process.env.DB_PORT || 3306,
-        waitForConnections: true,
-        connectionLimit: 10, // Limite de connexions simultanées
-        queueLimit: 0, // Pas de limite pour les connexions en attente
-      });
-      console.log("Pool de connexions initialisé");
+    const timeStamp = new Date();
+    const timeOnly = timeStamp.toLocaleTimeString(); // Format par défaut
+
+    if (db) {
+        console.log(timeOnly, 'Connecté à la base de données');
+        return db;
     }
-    const connection = await pool.getConnection();
-    console.log("Connexion à la base de données réussie");
-    return connection;
-  } catch (error) {
-    console.error("Erreur lors de la connexion au pool :", error);
-    throw error;
-  }
+
+    try {
+        db = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            database: process.env.DB_NAME,
+            password: process.env.DB_PASSWORD,
+            port: process.env.DB_PORT || 3306,
+        });
+
+        console.log(timeOnly, 'Connection à la BDD.');
+        return db;
+    } catch (error) {
+        console.error(timeOnly, 'Errur lors de la connexion à la BDD: ', error);
+        db = null;
+        return null;
+    }
 };
 
 module.exports = connectToDb;
