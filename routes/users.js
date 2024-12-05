@@ -84,12 +84,12 @@ router.post("/login", async (req, res) => {
 
 
   router.put("/modifierProfile", upload.fields([{ name: "logo" }, { name: "image" }]), async (req, res) => {
-    const { mail, password, title, description, link_reseaux_1, link_reseaux_2, link_reseaux_3 } = req.body;
+    const { mail, password, title, title_description, description1, description2, description3, link_reseaux_1, link_reseaux_2, link_reseaux_3 } = req.body;
 
     const logo = req.files && req.files.logo ? req.files.logo[0].filename : null;
     const image = req.files && req.files.image ? req.files.image[0].filename : null;
 
-    if (!mail || !password || !title || !description || !link_reseaux_1 || !link_reseaux_2 || !link_reseaux_3 || !logo || !image) {
+    if (!mail || !password || !title || !title_description || !description1 || !description2 || !description3 || !link_reseaux_1 || !link_reseaux_2 || !link_reseaux_3 || !logo || !image) {
         return res.status(400).json({ message: "Tous les champs, y compris logo et image, sont requis." });
     }
 
@@ -103,9 +103,9 @@ router.post("/login", async (req, res) => {
 
         const sql = 
           `UPDATE users SET 
-          mail = ?, password = ?, title = ?, logo = ?, image = ?, description = ?, link_reseaux_1 = ?, link_reseaux_2 = ?, link_reseaux_3 = ?`;
+          mail = ?, password = ?, title = ?, logo = ?, image = ?, title_description = ?, description1 = ?, title_description2 = ?, title_description3 = ?, link_reseaux_1 = ?, link_reseaux_2 = ?, link_reseaux_3 = ?`;
 
-        const params = [mail, hashedPassword, title, logo, image, description, link_reseaux_1, link_reseaux_2, link_reseaux_3, mail];
+        const params = [mail, hashedPassword, title, logo, image, title_description, description1, description2, description3, link_reseaux_1, link_reseaux_2, link_reseaux_3];
         await db.query(sql, params);
 
         res.status(200).json({ message: "Profil mis à jour avec succès !" });
