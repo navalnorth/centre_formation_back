@@ -16,18 +16,27 @@ const connectToDb = async () => {
     }
 
     try {
+        console.log(`Tentative de connexion à la base de données en mode ${isProduction ? 'Production' : 'Développement'}`);
+        console.log({
+            host: isProduction ? process.env.PROD_DB_HOST : process.env.DB_HOST,
+            user: isProduction ? process.env.PROD_DB_USER : process.env.DB_USER,
+            database: isProduction ? process.env.PROD_DB_NAME : process.env.DB_NAME,
+            port: isProduction ? process.env.PROD_DB_PORT : process.env.DB_PORT || 3306,
+        });
+
         db = await mysql.createConnection({
             host: isProduction ? process.env.PROD_DB_HOST : process.env.DB_HOST,
             user: isProduction ? process.env.PROD_DB_USER : process.env.DB_USER,
             database: isProduction ? process.env.PROD_DB_NAME : process.env.DB_NAME,
             password: isProduction ? process.env.PROD_DB_PASSWORD : process.env.DB_PASSWORD,
-            port: process.env.DB_PORT || 3306,
+            port: isProduction ? process.env.PROD_DB_PORT : process.env.DB_PORT || 3306,
         });
 
-        console.log(timeOnly, `Connexion à la BDD en ${isProduction ? 'Production' : 'Développement'}.`);
+        console.log(timeOnly, `Connexion réussie à la base de données en mode ${isProduction ? 'Production' : 'Développement'}`);
         return db;
     } catch (error) {
-        console.error(timeOnly, 'Erreur lors de la connexion à la BDD: ', error);
+        console.error(`${timeOnly} - Impossible de se connecter à la base de données (${isProduction ? 'Production' : 'Développement'}).`);
+        console.error('Détails de l\'erreur :', error.message);
         db = null;
         return null;
     }
