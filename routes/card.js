@@ -40,10 +40,9 @@ router.get("/", async (req, res) => {
 
 
 
-router.put("/modifierCard/:id_card", upload.single("bgimage"), async (req, res) => {
+router.put("/modifierCard/:id_card", async (req, res) => {
     const {description, infoBull1, infoBull2, title} = req.body;
-    const bgimage = req.file ? req.file.filename : null
-    if (!description || !infoBull1 || !infoBull2 || !title || !bgimage) { 
+    if (!description || !infoBull1 || !infoBull2 || !title ) { 
         return res.status(400).json({ message: 'Tous les champs sont requis.' }) 
     }
 
@@ -55,9 +54,9 @@ router.put("/modifierCard/:id_card", upload.single("bgimage"), async (req, res) 
 
         const sql = 
         `UPDATE card 
-        SET bgimage = ?, description = ?, infoBull1 = ? , infoBull2 = ? , title = ? 
+        SET description = ?, infoBull1 = ? , infoBull2 = ? , title = ? 
         WHERE id_card = ?`;
-        const [result] = await db.query(sql, [bgimage, description, infoBull1, infoBull2, title, cardId]);
+        const [result] = await db.query(sql, [ description, infoBull1, infoBull2, title, cardId]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
@@ -70,6 +69,35 @@ router.put("/modifierCard/:id_card", upload.single("bgimage"), async (req, res) 
 });
   
 
+router.put("/modifierCardImage/:id_card", upload.single("bgimage"), async (req, res) => {
+    let bgimage;
+    const cardId = req.params.id_card;
+    if (!req.file) {
+        bgimage = ""
+    } else {
+        console.log(req.file.filename)
+        bgimage = req.file.filename
+    }
 
+
+    try {
+        const db = await connectToDb();
+        if (!db) { return res.status(500).json({ message: "Erreur de connexion à la base de données" }) }
+
+        const sql = 
+        `UPDATE card SET 
+        bgimage = ? where id_card = ?`;
+        const [result] = await db.query(sql, [bgimage,cardId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
+        }
+
+        res.status(200).json({ message: "Accueil mis à jour avec succès !" });
+    } catch (err) {
+        res.status(500).json("Erreur lors de la mise à jour de l'accueil :", err);
+    }
+});
+  
 
 module.exports = router;

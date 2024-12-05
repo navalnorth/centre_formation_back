@@ -41,10 +41,9 @@ router.get("/", async (req, res) => {
 
 
 
-router.put("/modifierAccueil", upload.single("image_accueil"), async (req, res) => {
+router.put("/modifierAccueil", async (req, res) => {
     const { title_accueil, title_section, name, description } = req.body;
-    const image_accueil = req.file ? req.file.filename : null
-    if (!title_accueil || !title_section || !name || !description || !image_accueil) { 
+    if (!title_accueil || !title_section || !name || !description ) { 
         return res.status(400).json({ message: 'Tous les champs sont requis.' }) 
     }
 
@@ -54,8 +53,8 @@ router.put("/modifierAccueil", upload.single("image_accueil"), async (req, res) 
 
         const sql = 
         `UPDATE accueil SET 
-        title_accueil = ?, title_section = ?, image_accueil = ?, name = ?, description = ?`;
-        const [result] = await db.query(sql, [title_accueil, title_section, image_accueil, name, description]);
+        title_accueil = ?, title_section = ?, name = ?, description = ?`;
+        const [result] = await db.query(sql, [title_accueil, title_section, name, description]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
