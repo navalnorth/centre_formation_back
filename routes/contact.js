@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
         }
 
         const sql = "INSERT INTO contact (firstname, lastname, mail, phone, reason, message) VALUES (?, ?, ?, ?, ?, ?)";
-        await db.query(sql, [firstname, lastname, mail, phone, reason, message]);
+        result = await db.query(sql, [firstname, lastname, mail, phone, reason, message]);
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -54,5 +54,23 @@ router.post("/", async (req, res) => {
         res.status(500).json({ message: "Une erreur est survenue.", error: err.message });
     }
 });
+
+
+
+router.get("/tout", async (req, res) => {
+
+    try {
+      const db = await connectToDb();
+      if (!db) { return res.status(500).json({ message: "Erreur à la base de données" }) }
+
+        const sql = "SELECT * FROM contact";
+        const [results] = await db.query(sql);
+  
+      res.status(200).json({ message: "listes des voyages du user" , data: results});
+    } catch (err) {
+      console.error("Erreur lors de la récuperation des voyage :", err);
+      res.status(500).json({ message: "Erreur serveur", error: err });
+    }
+  });
 
 module.exports = router;
