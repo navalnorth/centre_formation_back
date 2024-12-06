@@ -67,36 +67,54 @@ router.put("/modifierAccueil", async (req, res) => {
 });
   
 
+const fs = require("fs"); // Pour manipuler les fichiers
+
 router.put("/modifierAccueilImage", upload.single("image_accueil"), async (req, res) => {
-    let image_accueil;
+    const uploadedFile = req.file; // Fichier temporairement sauvegardé
+    let image_accueil = "";
 
-    if (!req.file) {
-        image_accueil = ""
-    } else {
-        console.log(req.file.filename)
-        image_accueil = req.file.filename
+    if (uploadedFile) {
+        image_accueil = uploadedFile.filename; // Nom temporaire du fichier
     }
-
 
     try {
         const db = await connectToDb();
-        if (!db) { return res.status(500).json({ message: "Erreur de connexion à la base de données" }) }
+        if (!db) {
+            // Supprimer le fichier temporaire si la connexion échoue
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path);
+            }
+            return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+        }
 
-        const sql = 
-        `UPDATE accueil SET 
-        image_accueil = ?`;
+        // Mise à jour en base de données
+        const sql = `
+            UPDATE accueil 
+            SET image_accueil = ?`;
         const [result] = await db.query(sql, [image_accueil]);
 
         if (result.affectedRows === 0) {
+            // Supprimer l'image si aucune ligne n'est mise à jour
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path);
+            }
             return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
         }
 
-        res.status(200).json({ message: "Accueil mis à jour avec succès !" });
+        // Tout s'est bien passé, envoyer une réponse de succès
+        res.status(200).json({ message: "Image d'accueil mise à jour avec succès !" });
     } catch (err) {
-        res.status(500).json("Erreur lors de la mise à jour de l'accueil :", err);
+        // Supprimer l'image temporaire en cas d'erreur
+        if (uploadedFile) {
+            fs.unlinkSync(uploadedFile.path);
+        }
+        res.status(500).json({ 
+            message: "Erreur lors de la mise à jour de l'image d'accueil.", 
+            error: err.message // Ajouter le message d'erreur pour le débogage
+        });
     }
 });
-  
+
 
 
 

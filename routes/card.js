@@ -69,35 +69,57 @@ router.put("/modifierCard/:id_card", async (req, res) => {
 });
   
 
-router.put("/modifierCardImage/:id_card", upload.single("bgimage"), async (req, res) => {
-    let bgimage;
-    const cardId = req.params.id_card;
-    if (!req.file) {
-        bgimage = ""
-    } else {
-        console.log(req.file.filename)
-        bgimage = req.file.filename
-    }
+const fs = require("fs"); // Pour la gestion des fichiers
 
+router.put("/modifierCardImage/:id_card", upload.single("bgimage"), async (req, res) => {
+    const cardId = req.params.id_card;
+    const uploadedFile = req.file; // Fichier temporairement sauvegardé par multer
+    let bgimage = "";
+
+    if (uploadedFile) {
+        bgimage = uploadedFile.filename; // Nom temporaire du fichier
+    }
 
     try {
         const db = await connectToDb();
-        if (!db) { return res.status(500).json({ message: "Erreur de connexion à la base de données" }) }
+        if (!db) {
+            // Supprimer le fichier temporaire si la connexion échoue
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path);
+            }
+            return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+        }
 
-        const sql = 
-        `UPDATE card SET 
-        bgimage = ? where id_card = ?`;
-        const [result] = await db.query(sql, [bgimage,cardId]);
+        // Mise à jour en base de données
+        const sql = `
+            UPDATE card 
+            SET bgimage = ? 
+            WHERE id_card = ?`;
+        const [result] = await db.query(sql, [bgimage, cardId]);
 
         if (result.affectedRows === 0) {
+            // Supprimer l'image si aucune ligne n'est mise à jour
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path);
+            }
             return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
         }
 
-        res.status(200).json({ message: "Accueil mis à jour avec succès !" });
+        // Tout s'est bien passé, envoyer une réponse de succès
+        res.status(200).json({ message: "Image de la carte mise à jour avec succès !" });
     } catch (err) {
-        res.status(500).json("Erreur lors de la mise à jour de l'accueil :", err);
+        // Supprimer l'image temporaire en cas d'erreur
+        if (uploadedFile) {
+            fs.unlinkSync(uploadedFile.path);
+        }
+        res.status(500).json({ 
+            message: "Erreur lors de la mise à jour de l'image de la carte.", 
+            error: err.message // Ajouter le message d'erreur pour le débogage
+        });
     }
 });
-  
+
+
+
 
 module.exports = router;

@@ -82,41 +82,139 @@ router.post("/login", async (req, res) => {
   });
 
 
+  router.put("/modifierProfile", async (req, res) => {
+      const { 
+          mail, 
+          password, 
+          title, 
+          title_description, 
+          description1, 
+          description2, 
+          description3, 
+          link_reseaux_1, 
+          link_reseaux_2, 
+          link_reseaux_3 
+      } = req.body;
+  
+      if (!mail || !password || !title || !title_description || !description1 || !description2 || !description3 || !link_reseaux_1 || !link_reseaux_2 || !link_reseaux_3) {
+          return res.status(400).json({ message: "Tous les champs sont requis." });
+      }
+  
+      try {
+          const db = await connectToDb();
+          if (!db) {
+              return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+          }
+  
+          const hashedPassword = await bcrypt.hash(password, 10);
+  
+          const sql = `
+              UPDATE users 
+              SET mail = ?, password = ?, title = ?, title_description = ?, 
+                  description1 = ?, description2 = ?, description3 = ?, 
+                  link_reseaux_1 = ?, link_reseaux_2 = ?, link_reseaux_3 = ?`;
+  
+          const params = [
+              mail, 
+              hashedPassword, 
+              title, 
+              title_description, 
+              description1, 
+              description2, 
+              description3, 
+              link_reseaux_1, 
+              link_reseaux_2, 
+              link_reseaux_3
+          ];
+  
+          await db.query(sql, params);
+  
+          res.status(200).json({ message: "Informations utilisateur mises à jour avec succès !" });
+      } catch (err) {
+          console.error("Erreur lors de la mise à jour des informations utilisateur :", err);
+          res.status(500).json({ message: "Erreur lors de la mise à jour des informations utilisateur.", error: err.message });
+      }
+  });
+  
 
-  router.put("/modifierProfile", upload.fields([{ name: "logo" }, { name: "image" }]), async (req, res) => {
-    const { mail, password, title, title_description, description1, description2, description3, link_reseaux_1, link_reseaux_2, link_reseaux_3 } = req.body;
+  
+  const fs = require("fs");
 
-    const logo = req.files && req.files.logo ? req.files.logo[0].filename : null;
-    const image = req.files && req.files.image ? req.files.image[0].filename : null;
+  router.put("/modifierProfileLogo", upload.single("logo"), async (req, res) => {
+      const uploadedFile = req.file;
+      const logo = uploadedFile ? uploadedFile.filename : null;
+  
+      if (!logo) {
+          return res.status(400).json({ message: "Le fichier logo est requis." });
+      }
+  
+      try {
+          const db = await connectToDb();
+          if (!db) {
+              if (uploadedFile) {
+                  fs.unlinkSync(uploadedFile.path); // Supprime le fichier en cas d'échec
+              }
+              return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+          }
+  
+          const sql = `UPDATE users SET logo = ?`;
+          const params = [logo];
+          const [result] = await db.query(sql, params);
+  
+          if (result.affectedRows === 0) {
+              if (uploadedFile) {
+                  fs.unlinkSync(uploadedFile.path); // Supprime le fichier si aucune ligne n'est mise à jour
+              }
+              return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
+          }
+  
+          res.status(200).json({ message: "Logo mis à jour avec succès !" });
+      } catch (err) {
+          if (uploadedFile) {
+              fs.unlinkSync(uploadedFile.path); // Supprime le fichier en cas d'erreur
+          }
+          console.error("Erreur lors de la mise à jour du logo :", err);
+          res.status(500).json({ message: "Erreur lors de la mise à jour du logo.", error: err.message });
+      }
+  });
+  
+  router.put("/modifierProfileImage", upload.single("image"), async (req, res) => {
+    const uploadedFile = req.file;
+    const image = uploadedFile ? uploadedFile.filename : null;
 
-    if (!mail || !password || !title || !title_description || !description1 || !description2 || !description3 || !link_reseaux_1 || !link_reseaux_2 || !link_reseaux_3 || !logo || !image) {
-        return res.status(400).json({ message: "Tous les champs, y compris logo et image, sont requis." });
+    if (!image) {
+        return res.status(400).json({ message: "Le fichier image est requis." });
     }
 
     try {
         const db = await connectToDb();
         if (!db) {
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path); // Supprime le fichier en cas d'échec
+            }
             return res.status(500).json({ message: "Erreur de connexion à la base de données" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const sql = `UPDATE users SET image = ?`;
+        const params = [image];
+        const [result] = await db.query(sql, params);
 
-        const sql = 
-          `UPDATE users SET 
-          mail = ?, password = ?, title = ?, logo = ?, image = ?, title_description = ?, description1 = ?, title_description2 = ?, title_description3 = ?, link_reseaux_1 = ?, link_reseaux_2 = ?, link_reseaux_3 = ?`;
+        if (result.affectedRows === 0) {
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path); // Supprime le fichier si aucune ligne n'est mise à jour
+            }
+            return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
+        }
 
-        const params = [mail, hashedPassword, title, logo, image, title_description, description1, description2, description3, link_reseaux_1, link_reseaux_2, link_reseaux_3];
-        await db.query(sql, params);
-
-        res.status(200).json({ message: "Profil mis à jour avec succès !" });
+        res.status(200).json({ message: "Image mise à jour avec succès !" });
     } catch (err) {
-        console.error("Erreur lors de la mise à jour du profil :", err);
-        res.status(500).json({ message: "Erreur lors de la mise à jour du profil.", error: err.message });
+        if (uploadedFile) {
+            fs.unlinkSync(uploadedFile.path); // Supprime le fichier en cas d'erreur
+        }
+        console.error("Erreur lors de la mise à jour de l'image :", err);
+        res.status(500).json({ message: "Erreur lors de la mise à jour de l'image.", error: err.message });
     }
 });
-
-
-  
 
 
 
