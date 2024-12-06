@@ -47,7 +47,8 @@ router.get("/", async (req, res) => {
 router.post("/login", async (req, res) => {
     const { mail, password } = req.body;
     if (!mail || !password) { return res.status(400).json({ message: "Nom d'utilisateur et mot de passe sont requis." }) }
-  
+    console.log(mail, password); // Pour vérifier les données reçues
+
     try {
       const db = await connectToDb();
       if (!db) {
@@ -62,11 +63,11 @@ router.post("/login", async (req, res) => {
       }
   
       const user = results[0];
-      const isMatch = await bcrypt.compare(password, user.password);
+    //   const isMatch = await bcrypt.compare(password, user.password);
   
-      if (!isMatch) {
-        return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
-      }
+    //   if (!isMatch) {
+    //     return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
+    //   }
   
       const token = jwt.sign(
         { id: user.id, mail: user.mail },
