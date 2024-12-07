@@ -36,5 +36,6 @@ jobs:
       - name: Deploy to Railway
         if: success() # N'exécuter cette étape que si les tests réussissent
         env:
+          NODE_ENV: production # Définit NODE_ENV lors du déploiement
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: railway up --service "centre_formation_back"

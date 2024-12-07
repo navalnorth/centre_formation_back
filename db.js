@@ -16,14 +16,6 @@ const connectToDb = async () => {
     }
 
     try {
-        console.log(`Tentative de connexion à la base de données en mode ${isProduction ? 'Production' : 'Développement'}`);
-        console.log({
-            host: isProduction ? process.env.PROD_DB_HOST : process.env.DB_HOST,
-            user: isProduction ? process.env.PROD_DB_USER : process.env.DB_USER,
-            database: isProduction ? process.env.PROD_DB_NAME : process.env.DB_NAME,
-            port: isProduction ? process.env.PROD_DB_PORT : process.env.DB_PORT || 3306,
-        });
-
         db = await mysql.createConnection({
             host: isProduction ? process.env.PROD_DB_HOST : process.env.DB_HOST,
             user: isProduction ? process.env.PROD_DB_USER : process.env.DB_USER,
