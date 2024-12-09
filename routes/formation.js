@@ -54,6 +54,64 @@ router.get("/:id_formation", async (req, res) => {
     }
 });
 
+router.post(
+    "/createFormation",
+    upload.single("image_formation"),
+    async (req, res) => {
+        const { title_formation, description_formation, text_button, description_formation_card } = req.body;
+        const uploadedFile = req.file;
+        let image_formation = "";
+
+        if (!title_formation || !description_formation || !text_button || !description_formation_card) {
+            // Supprimez l'image temporaire si les champs sont incomplets
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path);
+            }
+            return res.status(400).json({ message: "Tous les champs sont requis." });
+        }
+
+        if (uploadedFile) {
+            image_formation = uploadedFile.filename; // Nom temporaire du fichier
+        }
+
+        try {
+            const db = await connectToDb();
+            if (!db) {
+                if (uploadedFile) {
+                    fs.unlinkSync(uploadedFile.path);
+                }
+                return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+            }
+
+            const sql = `
+                INSERT INTO formation 
+                (title_formation, description_formation, text_button, description_formation_card, image_formation) 
+                VALUES (?, ?, ?, ?, ?)`;
+
+            const [result] = await db.query(sql, [
+                title_formation,
+                description_formation,
+                text_button,
+                description_formation_card,
+                image_formation,
+            ]);
+
+            res.status(201).json({
+                message: "Formation avec image créée avec succès !",
+                data: { id: result.insertId },
+            });
+        } catch (err) {
+            if (uploadedFile) {
+                fs.unlinkSync(uploadedFile.path);
+            }
+            res.status(500).json({
+                message: "Erreur lors de la création de la formation avec image",
+                error: err.message,
+            });
+        }
+    }
+);
+
 
 
 router.put("/modifierFormation/:id_formation", async (req, res) => {

@@ -137,6 +137,45 @@ router.post("/login", async (req, res) => {
       }
   });
   
+  router.put("/modifierColor", async (req, res) => {
+    const { 
+        colordeg1, 
+        colordeg2,
+        pinkCard,
+        allButon,
+        text,
+        textcard
+       
+    } = req.body;
+
+    try {
+        const db = await connectToDb();
+        if (!db) {
+            return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+        }
+
+        const sql = `
+            UPDATE users 
+            SET colordeg1 = ?, colordeg2 = ? , pinkCard = ?, allButon = ?, colortext = ?, textcard = ?`;
+
+        const params = [
+            colordeg1, 
+            colordeg2 ,
+            pinkCard,
+            allButon,
+            text,
+            textcard
+          
+        ];
+
+        await db.query(sql, params);
+
+        res.status(200).json({ message: "couleurs modifier !" });
+    } catch (err) {
+        console.error("Erreur lors de la mise à jour des couleurs :", err);
+        res.status(500).json({ message: "Erreur lors de la mise à jour des couleur utilisateur.", error: err.message });
+    }
+});
 
   
   const fs = require("fs");
