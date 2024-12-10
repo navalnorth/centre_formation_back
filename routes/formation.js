@@ -196,4 +196,28 @@ router.put(
     }
 );
 
+
+
+router.delete("/deleteFormation/:id_formation", async (req, res) => {
+    const idFormation = req.params.id_formation;
+
+    try {
+        const db = await connectToDb();
+        if (!db) {
+            return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+        }
+
+        const sql = "DELETE FROM formation WHERE id_formation = ?";
+        const [result] = await db.query(sql, [idFormation]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Formation non trouvée pour suppression." });
+        }
+
+        res.status(200).json({ message: "Formation supprimée avec succès !" });
+    } catch (err) {
+        res.status(500).json({ message: "Erreur lors de la suppression de la formation.", error: err.message });
+    }
+});
+
 module.exports = router;

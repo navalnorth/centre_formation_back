@@ -17,6 +17,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 connectToDb();
 
+const admin = require('./routes/admin.js')
+app.use('/admin', admin);
+
 const users = require('./routes/users.js')
 app.use('/users', users);
 

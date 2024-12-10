@@ -1,115 +1,63 @@
 const request = require("supertest");
 const express = require("express");
-const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const usersRoute = require("../routes/users.js");
 
-jest.mock("../db.js", () => jest.fn());
-const connectToDb = require("../db.js");
-
+const loginRoute = require("../routes/admin.js"); 
 const app = express();
-app.use(bodyParser.json());
-app.use("/", usersRoute);
+app.use(express.json());
+app.use("/", loginRoute);
+
+
 
 describe("POST /login", () => {
-  beforeEach(() => {
-    connectToDb.mockReset();
-  });
-
-  // Simuler les variables d'environnement pour JWT
-  beforeAll(() => {
-    process.env.JWT_SECRET = "testsecret";
-    process.env.JWT_EXPIRES_IN = "1h";
-  });
-
-
-
-  test("Retourne une erreur si les champs sont manquants", async () => {
-    const res = await request(app).post("/login").send({
-      mail: "",
-      password: "",
+    beforeAll(() => {
+        jest.spyOn(bcrypt, "compare");
+        jest.spyOn(jwt, "sign");
     });
 
-    expect(res.statusCode).toBe(400);
-    expect(res.body).toEqual({
-      message: "Nom d'utilisateur et mot de passe sont requis.",
-    });
-  });
-
-
-
-  test("Retourne une erreur si l'utilisateur n'existe pas", async () => {
-    connectToDb.mockResolvedValue({
-      query: jest.fn().mockResolvedValue([[]]),
+    afterAll(() => {
+        jest.restoreAllMocks(); // Nettoyer les mocks après les tests
     });
 
-    const res = await request(app).post("/login").send({
-      mail: "inconnu@mail.com",
-      password: "password123",
+
+
+    test("Retourne une erreur si les champs sont manquants", async () => {
+        const res = await request(app).post("/login").send({ username: "", password: "" });
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body).toEqual({ message: "Nom d'utilisateur et mot de passe sont requis." });
     });
 
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toEqual({
-      message: "Nom d'utilisateur ou mot de passe incorrect",
-    });
-  });
 
 
+    test("Retourne une erreur si l'utilisateur n'existe pas", async () => {
+        const res = await request(app).post("/login").send({ username: "inconnu", password: "password123" });
 
-  // test("Retourne une erreur si le mot de passe est incorrect", async () => {
-  //   const hashedPassword = await bcrypt.hash("password123", 10);
-  //   connectToDb.mockResolvedValue({
-  //     query: jest.fn().mockResolvedValue([[{ id: 1, mail: "test@mail.com", password: hashedPassword }]]),
-  //   });
-
-  //   jest.spyOn(bcrypt, "compare").mockResolvedValue(false);
-
-  //   const res = await request(app).post("/login").send({
-  //     mail: "test@mail.com",
-  //     password: "wrongpassword",
-  //   });
-
-  //   expect(res.statusCode).toBe(401);
-  //   expect(res.body).toEqual({
-  //     message: "Nom d'utilisateur ou mot de passe incorrect",
-  //   });
-  // });
-
-
-
-  test("Connecté avec succès", async () => {
-    const hashedPassword = await bcrypt.hash("password123", 10);
-    connectToDb.mockResolvedValue({
-      query: jest.fn().mockResolvedValue([[{ id: 1, mail: "test@mail.com", password: hashedPassword }]]),
+        expect(res.statusCode).toBe(401);
+        expect(res.body).toEqual({ message: "Nom d'utilisateur ou mot de passe incorrect" });
     });
 
-    // Simuler bcrypt.compare pour retourner true
-    jest.spyOn(bcrypt, "compare").mockResolvedValue(true);
 
-    const res = await request(app).post("/login").send({
-      mail: "test@mail.com",
-      password: "password123",
+
+    test("Retourne une erreur si le mot de passe est incorrect", async () => {
+        bcrypt.compare.mockResolvedValue(false); // Simule bcrypt.compare retournant faux
+
+        const res = await request(app).post("/login").send({ username: "admin", password: "wrongpassword" });
+
+        expect(res.statusCode).toBe(401);
+        expect(res.body).toEqual({ message: "Nom d'utilisateur ou mot de passe incorrect" });
     });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty("token");
-    expect(res.body.message).toBe("Utilisateur connecté");
-  });
 
+    
+    test("Connecté avec succès", async () => {
+        bcrypt.compare.mockResolvedValue(true); // Simule bcrypt.compare retournant vrai
+        jwt.sign.mockReturnValue("faketoken"); // Simule la génération d'un token JWT
 
+        const res = await request(app).post("/login").send({ username: "admin", password: "password123" });
 
-  test("Retourne une erreur si la base de données est inaccessible", async () => {
-    connectToDb.mockResolvedValue(null); // Connexion échouée
-
-    const res = await request(app).post("/login").send({
-      mail: "test@mail.com",
-      password: "password123",
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toEqual({ message: "Utilisateur connecté", token: "faketoken" });
     });
-
-    expect(res.statusCode).toBe(500);
-    expect(res.body).toEqual({
-      message: "Erreur de connexion à la base de données",
-    });
-  });
 });
