@@ -38,6 +38,10 @@ app.use('/card', card);
 const formation = require('./routes/formation.js')
 app.use('/formation', formation);
 
+const footer = require('./routes/footer.js')
+app.use('/footer', footer);
+
+
 
 
 app.listen(process.env.PORT, () => {
