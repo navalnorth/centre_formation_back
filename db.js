@@ -5,7 +5,7 @@ let db = null;
 
 const connectToDb = async () => {
     const timeStamp = new Date();
-    const timeOnly = timeStamp.toLocaleTimeString();
+    const timeOnly = timeStamp.toLocaleTimeString()
 
     // Détermine l'environnement (par défaut "development" en local)
     const isProduction = process.env.NODE_ENV === 'production';
