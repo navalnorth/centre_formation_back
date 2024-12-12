@@ -117,6 +117,35 @@ router.put("/modifierProfile", async (req, res) => {
     }
 });
 
+router.put("/modifierTitleFormation", async (req, res) => {
+    try {
+        const db = await connectToDb();
+        if (!db) {
+            return res.status(500).json({ message: "Erreur de connexion à la base de données" });
+        }
+
+        const {
+            title_page_formation,
+            
+        } = req.body;
+
+        const sql = `
+              UPDATE users 
+              SET title_page_formation = ?`;
+
+        const params = [
+            title_page_formation
+           
+        ];
+
+        await db.query(sql, params);
+
+        res.status(200).json({ message: "Informations utilisateur mises à jour avec succès !" });
+    } catch (err) {
+        console.error("Erreur lors de la mise à jour des informations utilisateur :", err);
+        res.status(500).json({ message: "Erreur lors de la mise à jour des informations utilisateur.", error: err.message });
+    }
+});
 
 
 router.put("/modifierColor", async (req, res) => {
