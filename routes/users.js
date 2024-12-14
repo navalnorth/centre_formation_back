@@ -219,7 +219,7 @@ router.put("/modifierProfileLogo", upload.single("logo"), async (req, res) => {
             return res.status(404).json({ message: "Aucune ligne trouvée pour mise à jour." });
         }
 
-        res.status(200).json({ message: "Logo mis à jour avec succès !" });
+        res.status(200).json({ message: "Logo mis à jour avec succès !", updatedLogoFilename: logo  });
     } catch (err) {
         if (uploadedFile) {
             fs.unlinkSync(uploadedFile.path); // Supprime le fichier en cas d'erreur
