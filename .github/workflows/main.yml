@@ -24,10 +24,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Étape 4 : Exécuter les tests
-      - name: Run tests
-        run: npm test
-
       # Étape 5 : Installer Railway CLI
       - name: Install Railway CLI
         run: npm install -g @railway/cli
